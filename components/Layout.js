@@ -10,6 +10,7 @@ export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const { user, isAuthenticated, isAdmin, loading, logout } = useAuth();
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
@@ -135,6 +136,29 @@ export default function Layout({ children }) {
       setShowCookieWarning(true);
     }
   }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close navigation dropdowns
+      if (!event.target.closest('.dropdown')) {
+        setActiveDropdown(null);
+      }
+      
+      // Close profile dropdown
+      if (!event.target.closest('.user-profile')) {
+        setProfileDropdownOpen(false);
+      }
+      
+      // Close admin dropdown
+      if (!event.target.closest('.admin-dropdown')) {
+        setAdminDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
   
   // Function to check if a path is active
   const isActive = (path) => {
@@ -150,7 +174,29 @@ export default function Layout({ children }) {
       console.error('Failed to logout:', error);
     }
   };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const toggleProfileDropdown = () => {
+    setProfileDropdownOpen(!profileDropdownOpen);
+    // Close admin dropdown if open
+    if (adminDropdownOpen) setAdminDropdownOpen(false);
+    setActiveDropdown(null);
+  };
   
+  const toggleAdminDropdown = () => {
+    setAdminDropdownOpen(!adminDropdownOpen);
+    // Close profile dropdown if open
+    if (profileDropdownOpen) setProfileDropdownOpen(false);
+    setActiveDropdown(null);
+  };
+
+  const handleDropdownToggle = (dropdownName) => {
+    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
+  };
+
   // Prevent rendering header navigation before auth state is determined
   if (loading) {
     return (
@@ -162,22 +208,6 @@ export default function Layout({ children }) {
       </div>
     );
   }
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  const toggleProfileDropdown = () => {
-    setProfileDropdownOpen(!profileDropdownOpen);
-    // Close admin dropdown if open
-    if (adminDropdownOpen) setAdminDropdownOpen(false);
-  };
-  
-  const toggleAdminDropdown = () => {
-    setAdminDropdownOpen(!adminDropdownOpen);
-    // Close profile dropdown if open
-    if (profileDropdownOpen) setProfileDropdownOpen(false);
-  };
 
   return (
     <div>
@@ -195,6 +225,31 @@ export default function Layout({ children }) {
           </div>
         </div>
       )}
+      {/* Top Support Bar - LSSI Style */}
+      <div className="top-support-bar">
+        <div className="container">
+          <div className="support-info">
+            <div className="support-item">
+              <span>Customer Support:</span>
+              <a href="mailto:info@lmsinstitute.org">info@lmsinstitute.org</a>
+            </div>
+            <div className="support-item">
+              <span>Tech Support:</span>
+              <a href="mailto:support@lmsinstitute.org">support@lmsinstitute.org</a>
+            </div>
+          </div>
+          <div className="language-options">
+            <a href="#" className="language-link">
+              <span className="language-flag">🇺🇸</span>
+              English
+            </a>
+            <a href="#" className="language-link">
+              <span className="language-flag">🇪🇸</span>
+              Español
+            </a>
+          </div>
+        </div>
+      </div>
       <header className="main-header">
         <div className="container">
           <div className="logo">
@@ -229,55 +284,339 @@ export default function Layout({ children }) {
               <li className={isActive('/home')}>
                 <Link href="/home" onClick={() => setMobileMenuOpen(false)}>Home</Link>
               </li>
-              <li className={isActive('/catalog')}>
-                <Link href="/catalog" onClick={() => setMobileMenuOpen(false)}>Catalog</Link>
+              
+              {/* Certification Training - Main Menu Item */}
+              <li className={`dropdown ${activeDropdown === 'certification' ? 'open' : ''} ${router.asPath.includes('/certification') ? 'active' : ''}`}>
+                <button 
+                  className="dropdown-toggle"
+                  onClick={() => handleDropdownToggle('certification')}
+                >
+                  Certification Training
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {activeDropdown === 'certification' && (
+                  <ul className="dropdown-menu">
+                    <li><Link href="/catalog?audience=higher-education" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Academic Certifications</Link></li>
+                    <li><Link href="/catalog?audience=adults&category=professional" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Professional Development</Link></li>
+                    <li><Link href="/catalog?audience=adults&category=business" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Business Training</Link></li>
+                    <li><Link href="/catalog?audience=adults&category=technology" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Technology Certifications</Link></li>
+                    <li><Link href="/catalog?category=healthcare" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Healthcare Training</Link></li>
+                    <li><Link href="/catalog?category=quality" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Quality Management</Link></li>
+                  </ul>
+                )}
               </li>
-              <li className={isActive('/about')}>
-                <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About Us</Link>
+              
+              {/* Services - Main Menu Item */}
+              <li className={`dropdown ${activeDropdown === 'services' ? 'open' : ''} ${router.asPath.includes('/services') ? 'active' : ''}`}>
+                <button 
+                  className="dropdown-toggle"
+                  onClick={() => handleDropdownToggle('services')}
+                >
+                  Services
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {activeDropdown === 'services' && (
+                  <ul className="dropdown-menu">
+                    <li><Link href="/services/organizations" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>For Organizations</Link></li>
+                    <li><Link href="/services/consulting" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Consulting Services</Link></li>
+                    <li><Link href="/services/custom-training" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Custom Training</Link></li>
+                    <li><Link href="/services/assessment" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Process Assessment</Link></li>
+                    <li><Link href="/services/implementation" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Implementation Support</Link></li>
+                  </ul>
+                )}
               </li>
+              
+              {/* Resources - Main Menu Item */}
+              <li className={`dropdown ${activeDropdown === 'resources' ? 'open' : ''} ${router.asPath.includes('/resources') ? 'active' : ''}`}>
+                <button 
+                  className="dropdown-toggle"
+                  onClick={() => handleDropdownToggle('resources')}
+                >
+                  Resources
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {activeDropdown === 'resources' && (
+                  <ul className="dropdown-menu">
+                    <li><Link href="/catalog" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Digital Library</Link></li>
+                    <li><Link href="/resources/articles" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Articles & Guides</Link></li>
+                    <li><Link href="/resources/tools" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Tools & Templates</Link></li>
+                    <li><Link href="/resources/case-studies" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Case Studies</Link></li>
+                    <li><Link href="/resources/webinars" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Webinars</Link></li>
+                    <li><Link href="/resources/downloads" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Free Downloads</Link></li>
+                  </ul>
+                )}
+              </li>
+              
+              {/* About - Main Menu Item */}
+              <li className={`dropdown ${activeDropdown === 'about' ? 'open' : ''} ${router.asPath.includes('/about') ? 'active' : ''}`}>
+                <button 
+                  className="dropdown-toggle"
+                  onClick={() => handleDropdownToggle('about')}
+                >
+                  About
+                  <span className="dropdown-arrow">▼</span>
+                </button>
+                {activeDropdown === 'about' && (
+                  <ul className="dropdown-menu">
+                    <li><Link href="/about" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>About Us</Link></li>
+                    <li><Link href="/about/team" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Our Team</Link></li>
+                    <li><Link href="/about/methodology" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Our Methodology</Link></li>
+                    <li><Link href="/about/accreditation" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Accreditation</Link></li>
+                    <li><Link href="/about/partnerships" onClick={() => {
+                      setActiveDropdown(null);
+                      setMobileMenuOpen(false);
+                    }}>Partnerships</Link></li>
+                  </ul>
+                )}
+              </li>
+              
+              {/* Success Stories */}
+              <li className={isActive('/success-stories')}>
+                <Link href="/success-stories" onClick={() => setMobileMenuOpen(false)}>Success Stories</Link>
+              </li>
+              
+              {/* Blog */}
+              <li className={isActive('/blog')}>
+                <Link href="/blog" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
+              </li>
+              
+              {/* Contact */}
               <li className={isActive('/contact')}>
-                <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Contact Us</Link>
+                <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
               </li>
+              
+              {/* My Library - User specific */}
+              {isAuthenticated && (
+                <li className={`dropdown ${activeDropdown === 'learning' ? 'open' : ''} ${router.asPath.includes('/my-') ? 'active' : ''}`}>
+                  <button 
+                    className="dropdown-toggle"
+                    onClick={() => handleDropdownToggle('learning')}
+                  >
+                    My Learning
+                    <span className="dropdown-arrow">▼</span>
+                  </button>
+                  {activeDropdown === 'learning' && (
+                    <ul className="dropdown-menu">
+                      <li><Link href="/my-library" onClick={() => {
+                        setActiveDropdown(null);
+                        setMobileMenuOpen(false);
+                      }}>My Library</Link></li>
+                      <li><Link href="/orders" onClick={() => {
+                        setActiveDropdown(null);
+                        setMobileMenuOpen(false);
+                      }}>My Orders</Link></li>
+                      <li><Link href="/my-certificates" onClick={() => {
+                        setActiveDropdown(null);
+                        setMobileMenuOpen(false);
+                      }}>My Certificates</Link></li>
+                      <li><Link href="/my-progress" onClick={() => {
+                        setActiveDropdown(null);
+                        setMobileMenuOpen(false);
+                      }}>Learning Progress</Link></li>
+                    </ul>
+                  )}
+                </li>
+              )}
+              
+              {/* Admin Options - Updated to use activeDropdown system */}
               {isAuthenticated && isAdmin && (
-                <li className={`admin-dropdown ${adminDropdownOpen ? 'open' : ''}`}>
+                <li className={`admin-dropdown dropdown ${activeDropdown === 'admin' ? 'open' : ''}`}>
                   <button 
                     onClick={() => {
-                      toggleAdminDropdown();
+                      handleDropdownToggle('admin');
                       setMobileMenuOpen(false);
                     }}
-                    className="admin-dropdown-toggle"
+                    className="admin-dropdown-toggle dropdown-toggle"
                   >
                     <span className="admin-icon">👑</span>
-                    Admin Options
-                    <span className="dropdown-arrow">{adminDropdownOpen ? '▲' : '▼'}</span>
+                    Admin
+                    <span className="dropdown-arrow">▼</span>
                   </button>
-                  {adminDropdownOpen && (
-                    <ul className="admin-dropdown-menu">
-                      <li className={isActive('/add-product')}>
-                        <Link href="/add-product" onClick={() => {
-                          setAdminDropdownOpen(false);
-                          setMobileMenuOpen(false);
-                        }}>
-                          Add Product
-                        </Link>
+                  {activeDropdown === 'admin' && (
+                    <ul className="admin-dropdown-menu dropdown-menu">
+                      <li>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Add Content!');
+                            router.push('/add-product');
+                            setActiveDropdown(null);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 18px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '0.95rem'
+                          }}
+                        >
+                          Add Content
+                        </button>
                       </li>
-                      <li className={isActive('/dashboard')}>
-                        <Link href="/dashboard" onClick={() => {
-                          setAdminDropdownOpen(false);
-                          setMobileMenuOpen(false);
-                        }}>
+                      <li>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Users Dashboard!');
+                            router.push('/dashboard');
+                            setActiveDropdown(null);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 18px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '0.95rem'
+                          }}
+                        >
                           Users Dashboard
-                        </Link>
+                        </button>
                       </li>
-                      <li className={isActive('/all-orders')}>
-                        <Link href="/all-orders" onClick={() => {
-                          setAdminDropdownOpen(false);
-                          setMobileMenuOpen(false);
-                        }}>
+                      <li>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking All Orders!');
+                            router.push('/all-orders');
+                            setActiveDropdown(null);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 18px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '0.95rem'
+                          }}
+                        >
                           All Orders
-                        </Link>
+                        </button>
                       </li>
-
+                      <li>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Content Management!');
+                            router.push('/admin/content-management');
+                            setActiveDropdown(null);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 18px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '0.95rem'
+                          }}
+                        >
+                          Content Management
+                        </button>
+                      </li>
+                      <li>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Analytics!');
+                            router.push('/admin/analytics');
+                            setActiveDropdown(null);
+                            setMobileMenuOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 18px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '0.95rem'
+                          }}
+                        >
+                          Analytics
+                        </button>
+                      </li>
                     </ul>
                   )}
                 </li>
@@ -329,27 +668,72 @@ export default function Layout({ children }) {
                     </div>
                     <ul>
                       <li>
-                        <Link href="/profile" onClick={() => setProfileDropdownOpen(false)}>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Profile!');
+                            router.push('/profile');
+                            setProfileDropdownOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 15px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '15px'
+                          }}
+                        >
                           Profile
-                        </Link>
+                        </button>
                       </li>
                       <li>
-                        <Link href="/wishlist" onClick={() => setProfileDropdownOpen(false)}>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Clicking Wishlist!');
+                            router.push('/wishlist');
+                            setProfileDropdownOpen(false);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            width: '100%',
+                            textAlign: 'left',
+                            padding: '12px 15px',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            fontSize: '15px'
+                          }}
+                        >
                           Wishlist
-                        </Link>
+                        </button>
                       </li>
                       <li>
-                        <Link href="/cart" onClick={() => setProfileDropdownOpen(false)}>
+                        <Link href="/cart" onClick={(e) => {
+                          e.stopPropagation();
+                          setProfileDropdownOpen(false);
+                        }}>
                           Cart
                         </Link>
                       </li>
                       <li>
-                        <Link href="/orders" onClick={() => setProfileDropdownOpen(false)}>
+                        <Link href="/orders" onClick={(e) => {
+                          e.stopPropagation();
+                          setProfileDropdownOpen(false);
+                        }}>
                           My Orders
                         </Link>
                       </li>
                       <li>
-                        <Link href="/my-library" onClick={() => setProfileDropdownOpen(false)}>
+                        <Link href="/my-library" onClick={(e) => {
+                          e.stopPropagation();
+                          setProfileDropdownOpen(false);
+                        }}>
                           My Library
                         </Link>
                       </li>
@@ -359,27 +743,40 @@ export default function Layout({ children }) {
                       )}
                       {isAdmin && (
                         <li>
-                          <Link href="/dashboard" onClick={() => setProfileDropdownOpen(false)}>
+                          <Link href="/dashboard" onClick={(e) => {
+                            e.stopPropagation();
+                            setProfileDropdownOpen(false);
+                          }}>
                             Users Dashboard
                           </Link>
                         </li>
                       )}
                       {isAdmin && (
                         <li>
-                          <Link href="/all-orders" onClick={() => setProfileDropdownOpen(false)}>
+                          <Link href="/all-orders" onClick={(e) => {
+                            e.stopPropagation();
+                            setProfileDropdownOpen(false);
+                          }}>
                             All Orders
                           </Link>
                         </li>
                       )}
                       {isAdmin && (
                         <li>
-                          <Link href="/add-product" onClick={() => setProfileDropdownOpen(false)}>
+                          <Link href="/add-product" onClick={(e) => {
+                            e.stopPropagation();
+                            setProfileDropdownOpen(false);
+                          }}>
                             Add Product
                           </Link>
                         </li>
                       )}
                       <li>
-                        <button onClick={handleLogout}>
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          setProfileDropdownOpen(false);
+                          handleLogout();
+                        }}>
                           Logout
                         </button>
                       </li>
@@ -418,6 +815,140 @@ export default function Layout({ children }) {
       </footer>
       
       <style jsx>{`
+        /* Dropdown Styles */
+        .dropdown {
+          position: relative;
+        }
+        
+        .dropdown-toggle {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--text-color);
+          font-size: 1rem;
+          padding: 12px 18px;
+          transition: all 0.3s ease;
+          border-radius: 6px;
+          font-weight: 500;
+          text-decoration: none;
+        }
+        
+        .dropdown-toggle:hover,
+        .dropdown.open .dropdown-toggle {
+          color: var(--primary-color);
+          background-color: rgba(var(--primary-color-rgb, 66, 165, 245), 0.1);
+        }
+        
+        .dropdown-arrow {
+          font-size: 0.7rem;
+          margin-left: 5px;
+          transition: transform 0.3s ease;
+        }
+        
+        .dropdown.open .dropdown-arrow {
+          transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          background-color: var(--card-bg, #ffffff);
+          border-radius: 8px;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          min-width: 220px;
+          padding: 8px 0;
+          z-index: 9999 !important;
+          display: flex;
+          flex-direction: column;
+          border: 1px solid var(--border-color, #e1e5e9);
+          animation: dropdownSlide 0.2s ease-out;
+          pointer-events: auto !important;
+        }
+        
+        @keyframes dropdownSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .dropdown-menu li {
+          display: block;
+          width: 100%;
+          margin: 0;
+          list-style: none;
+          pointer-events: auto !important;
+          position: relative;
+          z-index: 1003;
+        }
+        
+        .dropdown-menu a {
+          display: block !important;
+          padding: 12px 18px;
+          color: var(--text-color, #333);
+          text-decoration: none;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          font-size: 0.95rem;
+          border-left: 3px solid transparent;
+          pointer-events: auto !important;
+          cursor: pointer !important;
+          position: relative;
+          z-index: 1004;
+        }
+        
+        .dropdown-menu a:hover {
+          background-color: rgba(var(--primary-color-rgb, 66, 165, 245), 0.05);
+          color: var(--primary-color, #42a5f5);
+          border-left-color: var(--primary-color, #42a5f5);
+          padding-left: 22px;
+        }
+        
+        /* Main Navigation Styles */
+        .main-nav {
+          display: flex;
+          align-items: center;
+        }
+        
+        .main-nav ul {
+          display: flex;
+          align-items: center;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          gap: 8px;
+        }
+        
+        .main-nav li {
+          position: relative;
+        }
+        
+        .main-nav li > a {
+          display: block;
+          padding: 12px 18px;
+          color: var(--text-color, #333);
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+          border-radius: 6px;
+        }
+        
+        .main-nav li > a:hover,
+        .main-nav li.active > a {
+          color: var(--primary-color, #42a5f5);
+          background-color: rgba(var(--primary-color-rgb, 66, 165, 245), 0.1);
+        }
+        
+        /* Admin Dropdown Specific Styles */
         .admin-dropdown {
           position: relative;
         }
@@ -431,72 +962,246 @@ export default function Layout({ children }) {
           cursor: pointer;
           color: var(--text-color);
           font-size: 1rem;
-          padding: 10px 15px;
-          transition: color 0.2s;
+          padding: 12px 18px;
+          transition: all 0.3s ease;
+          border-radius: 6px;
+          font-weight: 500;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
         }
         
         .admin-dropdown-toggle:hover {
-          color: var(--primary-color);
+          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+          transform: translateY(-1px);
         }
         
         .admin-icon {
           margin-right: 5px;
         }
         
-        .dropdown-arrow {
-          font-size: 0.7rem;
-          margin-left: 5px;
-        }
-        
         .admin-dropdown-menu {
           position: absolute;
           top: 100%;
-          left: 0;
+          right: 0;
           background-color: var(--card-bg);
           border-radius: 8px;
-          box-shadow: 0 5px 15px var(--shadow-color);
-          min-width: 180px;
-          padding: 5px 0;
-          z-index: 1000;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+          min-width: 200px;
+          padding: 8px 0;
+          z-index: 1002 !important;
           display: flex;
           flex-direction: column;
+          border: 1px solid var(--border-color);
+          animation: dropdownSlide 0.2s ease-out;
+          pointer-events: auto !important;
         }
         
         .admin-dropdown-menu li {
           display: block;
           width: 100%;
           margin: 0;
+          pointer-events: auto !important;
+          position: relative;
+          z-index: 1003;
         }
         
         .admin-dropdown-menu a {
-          display: block;
-          padding: 10px 15px;
+          display: block !important;
+          padding: 12px 18px;
           color: var(--text-color);
           text-decoration: none;
-          transition: background-color 0.2s, color 0.2s;
+          transition: all 0.2s ease;
           white-space: nowrap;
+          font-size: 0.95rem;
+          border-left: 3px solid transparent;
+          pointer-events: auto !important;
+          cursor: pointer !important;
+          position: relative;
+          z-index: 1004;
         }
         
         .admin-dropdown-menu a:hover {
-          background-color: rgba(var(--accent-rgb), 0.1);
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
           color: var(--primary-color);
+          border-left-color: #667eea;
+          padding-left: 22px;
         }
         
-        .admin-section-header {
-          font-size: 0.8rem;
-          font-weight: bold;
-          color: var(--text-muted);
-          padding: 10px 15px 5px;
-          border-top: 1px solid var(--border-color);
-          margin-top: 5px;
+        /* Header Styles */
+        .main-header {
+          background: var(--card-bg, #ffffff);
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid var(--border-color, #e1e5e9);
+          position: sticky;
+          top: 0;
+          /* Ensure header and its dropdowns sit above page overlays */
+          z-index: 2000;
+        }
+        
+        .main-header .container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 20px;
+          max-width: 1400px;
+          margin: 0 auto;
+          height: 70px;
+        }
+        
+        .logo {
+          display: flex;
+          align-items: center;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--primary-color, #42a5f5);
+        }
+        
+        .site-name {
+          background: linear-gradient(135deg, #42a5f5 0%, #667eea 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        /* Mobile Styles */
+        .mobile-menu-toggle {
+          display: none;
+          flex-direction: column;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 5px;
+        }
+        
+        .mobile-menu-toggle .bar {
+          width: 25px;
+          height: 3px;
+          background-color: var(--text-color);
+          margin: 3px 0;
+          transition: 0.3s;
+        }
+        
+        @media (max-width: 1024px) {
+          .main-nav ul {
+            gap: 4px;
+          }
+          
+          .main-nav li > a,
+          .dropdown-toggle {
+            padding: 10px 14px;
+            font-size: 0.95rem;
+          }
+          
+          .dropdown-menu {
+            min-width: 200px;
+          }
         }
         
         @media (max-width: 768px) {
+          .mobile-menu-toggle {
+            display: flex;
+          }
+          
+          .main-nav {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 999;
+          }
+          
+          .main-nav.open {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+          }
+          
+          .main-nav ul {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 20px;
+            gap: 0;
+          }
+          
+          .main-nav li {
+            width: 100%;
+            border-bottom: 1px solid var(--border-color);
+          }
+          
+          .main-nav li:last-child {
+            border-bottom: none;
+          }
+          
+          .main-nav li > a,
+          .dropdown-toggle {
+            width: 100%;
+            text-align: left;
+            padding: 15px 0;
+            border-radius: 0;
+          }
+          
+          .dropdown-menu {
+            position: static;
+            box-shadow: none;
+            background: transparent;
+            padding: 0 0 0 20px;
+            border: none;
+            animation: none;
+          }
+          
+          .dropdown-menu a {
+            padding: 10px 0;
+            border-left: none;
+            color: var(--text-muted);
+          }
+          
+          .dropdown-menu a:hover {
+            padding-left: 0;
+            background: transparent;
+            color: var(--primary-color);
+          }
+          
           .admin-dropdown-menu {
             position: static;
             box-shadow: none;
             background: transparent;
-            padding-left: 15px;
+            padding: 0 0 0 20px;
+            border: none;
+          }
+          
+          .admin-dropdown-menu a {
+            padding: 10px 0;
+            border-left: none;
+          }
+          
+          .admin-dropdown-menu a:hover {
+            padding-left: 0;
+            background: transparent;
+          }
+        }
+        
+        /* Header Actions */
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        
+        .header-search {
+          flex: 1;
+          max-width: 400px;
+          margin: 0 20px;
+        }
+        
+        @media (max-width: 768px) {
+          .header-search {
+            display: none;
           }
         }
       `}</style>

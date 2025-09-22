@@ -1,186 +1,242 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../lib/AuthContext';
 
 export default function Home() {
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const sections = [
+  // Local images only (shuffle/reuse as needed)
+  const images = ['/images/image.png', '/images/LOGO-LSSI-1024x425.png', '/images/Icon.png'];
+
+  const slides = [
     {
-      id: 'kids',
-      title: 'Kids Section',
-      subtitle: 'Stories That Spark Imagination',
-      description: 'Interactive books and e-books with AI-powered voice narration. Perfect for young minds to explore and learn.',
-      icon: '📚',
-      gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%)',
-      features: ['AI Voice Narration', 'Interactive Stories', 'Age-Appropriate Content', 'Visual Learning'],
-      link: '/catalog?audience=kids'
+      title: 'People. Empower. Impact.',
+      subtitle: 'Learn. Grow. Succeed with LMS',
+      ctaLabel: user ? 'Browse Library' : 'Explore Our Solutions',
+      ctaHref: user ? '/catalog' : '/catalog',
+      img: images[0]
     },
     {
-      id: 'adults',
-      title: 'Adults Section',
-      subtitle: 'Expand Your Horizons',
-      description: 'Diverse collection of books for personal growth, entertainment, and lifelong learning.',
-      icon: '📖',
-      gradient: 'linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%)',
-      features: ['Fiction & Non-Fiction', 'Self-Development', 'Digital & Physical', 'Personal Library'],
-      link: '/catalog?audience=adults'
+      title: 'Innovate. Transform. Succeed.',
+      subtitle: 'Courses, books, and resources for life-long learning',
+      ctaLabel: user ? 'Continue Learning' : 'Get Started',
+      ctaHref: user ? '/my-library' : '/signup',
+      img: images[1]
     },
     {
-      id: 'education',
-      title: 'Higher Education',
-      subtitle: 'Research & Academic Excellence',
-      description: 'Comprehensive academic resources, journals, and research tools for students and researchers.',
-      icon: '🎓',
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      features: ['Academic Journals', 'Research Papers', 'Citation Tools', 'Advanced Search'],
-      link: '/catalog?audience=higher-education'
+      title: 'Your Trusted Learning Partner',
+      subtitle: 'From kids to professionals—everything you need, in one place',
+      ctaLabel: 'See Our Catalog',
+      ctaHref: '/catalog',
+      img: images[2]
     }
   ];
 
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (paused) return;
+    timerRef.current = setInterval(() => {
+      setCurrent((c) => (c + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timerRef.current);
+  }, [paused, slides.length]);
+
+  const goTo = (idx) => setCurrent(idx % slides.length);
+  const next = () => setCurrent((c) => (c + 1) % slides.length);
+  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
+
+  const ecosystem = [
+    {
+      title: 'Digital Library',
+      desc: 'Thousands of titles across categories',
+      href: '/catalog',
+      img: images[0]
+    },
+    {
+      title: 'Learning Paths',
+      desc: 'Curated tracks for focused growth',
+      href: '/catalog',
+      img: images[1]
+    },
+    {
+      title: 'Resources & Tools',
+      desc: 'Templates, guides, and more',
+      href: '/catalog',
+      img: images[2]
+    },
+    {
+      title: 'About LMS',
+      desc: 'Our mission and approach',
+      href: '/about',
+      img: images[1]
+    }
+  ];
+
+  const accolades = [
+    { label: 'Quality Learning', img: images[2] },
+    { label: 'Trusted by Readers', img: images[0] },
+    { label: 'Community First', img: images[1] },
+    { label: 'Continuous Innovation', img: images[2] }
+  ];
+
+  const news = [
+    {
+      title: 'New courses launched this month',
+      date: 'August 2025',
+      href: '/blog',
+      img: images[0]
+    },
+    {
+      title: 'LMS adds AI-powered narration',
+      date: 'July 2025',
+      href: '/blog',
+      img: images[1]
+    },
+    {
+      title: 'Partnering with institutions',
+      date: 'June 2025',
+      href: '/blog',
+      img: images[2]
+    }
+  ];
+
+  const allies = [images[0], images[1], images[2], images[0], images[1], images[2]];
+
   return (
-    <div className="lms-home">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-background">
-          <div className="lms-animation"></div>
-          <div className="floating-books">
-            <div className="book book-1">📚</div>
-            <div className="book book-2">📖</div>
-            <div className="book book-3">📝</div>
-            <div className="book book-4">🎓</div>
+    <div className="landing">
+      {/* Hero Slider */}
+      <section
+        className="hero"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        {slides.map((s, i) => (
+          <div
+            key={i}
+            className={`slide ${i === current ? 'active' : ''}`}
+            aria-hidden={i !== current}
+          >
+            <div className="slide-bg">
+              <img src={s.img} alt="Slide background" />
+              <div className="bg-overlay" />
+            </div>
+            <div className="slide-content container">
+              <h1 className="title">{s.title}</h1>
+              <p className="subtitle">{s.subtitle}</p>
+              <Link href={s.ctaHref}>
+                <button className="btn-primary hero-cta">{s.ctaLabel}</button>
+              </Link>
+            </div>
           </div>
+        ))}
+
+        <button className="nav prev" aria-label="Previous" onClick={prev}>
+          ‹
+        </button>
+        <button className="nav next" aria-label="Next" onClick={next}>
+          ›
+        </button>
+
+        <div className="dots">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              className={`dot ${i === current ? 'active' : ''}`}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => goTo(i)}
+            />
+          ))}
         </div>
-        
-        <div className="hero-content">
-          <div className="hero-text">
-            <div className="logo-section">
-              <div className="lms-logo">
-                <span className="lms-icon">🌅</span>
-                <h1>LMS</h1>
-              </div>
-              <p className="tagline">Dawn of Knowledge</p>
-            </div>
-            
-            <h2 className="hero-title">Welcome to Smart Read</h2>
-            <p className="hero-description">
-              Discover a world of knowledge across three specialized sections. 
-              From children's interactive stories to academic research, 
-              LMS illuminates your path to learning.
-            </p>
-            
-            <div className="hero-stats">
-              <div className="stat">
-                <span className="stat-number">10K+</span>
-                <span className="stat-label">Books</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">50+</span>
-                <span className="stat-label">Journals</span>
-              </div>
-              <div className="stat">
-                <span className="stat-number">AI</span>
-                <span className="stat-label">Narration</span>
-              </div>
-            </div>
-            
-            {!user && (
-              <div className="hero-actions">
-                <Link href="/signup">
-                  <button className="btn-primary">Start Reading</button>
-                </Link>
-                <Link href="/login">
-                  <button className="btn-outline">Sign In</button>
-                </Link>
-              </div>
-            )}
+      </section>
+
+      {/* Ecosystem */}
+      <section className="ecosystem">
+        <div className="container">
+          <h2 className="section-title">Our Ecosystem</h2>
+          <div className="grid ecos">
+            {ecosystem.map((e, idx) => (
+              <Link key={idx} href={e.href} className="eco-card">
+                <div className="eco-media">
+                  <img src={e.img} alt="Ecosystem" />
+                </div>
+                <div className="eco-body">
+                  <h3>{e.title}</h3>
+                  <p>{e.desc}</p>
+                  <span className="link">Learn More →</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Three Main Sections */}
-      <section className="main-sections">
+      {/* Accolades */}
+      <section className="accolades">
         <div className="container">
-          <div className="sections-header">
-            <h2>Choose Your Reading Journey</h2>
-            <p>Each section is specially curated for different learning needs and interests</p>
-          </div>
-          
-          <div className="sections-grid">
-            {sections.map((section) => (
-              <div key={section.id} className="section-card">
-                <div 
-                  className="section-header"
-                  style={{ background: section.gradient }}
-                >
-                  <div className="section-icon">{section.icon}</div>
-                  <h3>{section.title}</h3>
-                  <p className="section-subtitle">{section.subtitle}</p>
-                </div>
-                
-                <div className="section-content">
-                  <p className="section-description">{section.description}</p>
-                  
-                  <ul className="section-features">
-                    {section.features.map((feature, index) => (
-                      <li key={index}>
-                        <span className="feature-check">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <Link href={section.link}>
-                    <button className="section-button">
-                      Explore {section.title}
-                    </button>
-                  </Link>
-                </div>
+          <h2 className="section-title">Our Accolades</h2>
+          <div className="grid acc">
+            {accolades.map((a, idx) => (
+              <div key={idx} className="acc-card">
+                <img src={a.img} alt={a.label} />
+                <p>{a.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="features-section">
+      {/* News & Events */}
+      <section className="news">
         <div className="container">
-          <h2>Why Choose LMS?</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🎧</div>
-              <h3>AI Voice Narration</h3>
-              <p>Listen to books with natural AI voices in multiple languages</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">📱</div>
-              <h3>Read Anywhere</h3>
-              <p>Access your library on any device, anytime</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🔍</div>
-              <h3>Smart Search</h3>
-              <p>Find exactly what you need with our advanced search engine</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🎯</div>
-              <h3>Personalized</h3>
-              <p>Content tailored to your age, interests, and reading level</p>
-            </div>
+          <h2 className="section-title">News & Events</h2>
+          <div className="grid news-grid">
+            {news.map((n, idx) => (
+              <Link key={idx} href={n.href} className="news-card">
+                <div className="news-media">
+                  <img src={n.img} alt={n.title} />
+                </div>
+                <div className="news-body">
+                  <span className="date">{n.date}</span>
+                  <h3>{n.title}</h3>
+                  <span className="link">Read More →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="center mt-24">
+            <Link href="/blog">
+              <button className="btn-outline">View All News</button>
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="cta-section">
+      {/* Allies */}
+      <section className="allies">
         <div className="container">
-          <div className="cta-content">
-            <h2>Ready to Begin Your Journey?</h2>
-            <p>Join thousands of readers who have discovered the joy of learning with LMS</p>
+          <h2 className="section-title">Allies in Awesomeness</h2>
+          <div className="ally-strip">
+            {allies.map((src, i) => (
+              <div key={i} className="ally">
+                <img src={src} alt="Ally logo" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="cta">
+        <div className="container">
+          <div className="cta-card">
+            <h2>Ready to make an impact?</h2>
+            <p>Join LMS and start your learning journey today.</p>
             {!user ? (
               <Link href="/signup">
-                <button className="btn-primary large">Get Started Today</button>
+                <button className="btn-primary large">Get Started</button>
               </Link>
             ) : (
               <Link href="/catalog">
@@ -192,436 +248,80 @@ export default function Home() {
       </section>
 
       <style jsx>{`
-        .lms-home {
-          min-height: 100vh;
-        }
-
-        .hero-section {
-          position: relative;
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .hero-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          overflow: hidden;
-        }
-
-        .lms-animation {
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: linear-gradient(45deg, 
-            rgba(255, 107, 107, 0.3) 0%,
-            rgba(255, 230, 109, 0.3) 25%,
-            rgba(78, 205, 196, 0.3) 50%,
-            rgba(102, 126, 234, 0.3) 75%,
-            rgba(118, 75, 162, 0.3) 100%);
-          animation: lms 20s ease-in-out infinite;
-        }
-
-        @keyframes lms {
-          0%, 100% { transform: rotate(0deg) scale(1); }
-          25% { transform: rotate(90deg) scale(1.1); }
-          50% { transform: rotate(180deg) scale(1); }
-          75% { transform: rotate(270deg) scale(1.1); }
-        }
-
-        .floating-books {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-        }
-
-        .book {
-          position: absolute;
-          font-size: 2rem;
-          animation: float 6s ease-in-out infinite;
-          opacity: 0.7;
-        }
-
-        .book-1 { top: 20%; left: 10%; animation-delay: 0s; }
-        .book-2 { top: 60%; right: 15%; animation-delay: 2s; }
-        .book-3 { bottom: 30%; left: 20%; animation-delay: 4s; }
-        .book-4 { top: 40%; right: 25%; animation-delay: 1s; }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(10deg); }
-        }
-
-        .hero-content {
-          position: relative;
-          z-index: 2;
-          text-align: center;
-          color: white;
-          max-width: 800px;
-          padding: 2rem;
-        }
-
-        .logo-section {
-          margin-bottom: 2rem;
-        }
-
-        .lms-logo {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .lms-icon {
-          font-size: 3rem;
-        }
-
-        .lms-logo h1 {
-          font-size: 4rem;
-          margin: 0;
-          font-weight: 700;
-          background: linear-gradient(45deg, #FFE66D, #FF6B6B);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .tagline {
-          font-size: 1.2rem;
-          margin: 0;
-          opacity: 0.9;
-          font-style: italic;
-        }
-
-        .hero-title {
-          font-size: 2.5rem;
-          margin: 2rem 0 1rem;
-          font-weight: 600;
-        }
-
-        .hero-description {
-          font-size: 1.2rem;
-          line-height: 1.6;
-          margin-bottom: 2rem;
-          opacity: 0.9;
-        }
-
-        .hero-stats {
-          display: flex;
-          justify-content: center;
-          gap: 3rem;
-          margin: 2rem 0;
-        }
-
-        .stat {
-          text-align: center;
-        }
-
-        .stat-number {
-          display: block;
-          font-size: 2rem;
-          font-weight: bold;
-          color: #FFE66D;
-        }
-
-        .stat-label {
-          font-size: 0.9rem;
-          opacity: 0.8;
-        }
-
-        .hero-actions {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-          margin-top: 2rem;
-        }
-
-        .main-sections {
-          padding: 4rem 0;
+        .landing {
           background: var(--bg-color);
         }
 
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 2rem;
-        }
+        /* Hero */
+        .hero { position: relative; height: 68vh; min-height: 520px; overflow: hidden; }
+        .slide { position: absolute; inset: 0; opacity: 0; transition: opacity .6s ease; }
+        .slide.active { opacity: 1; }
+        .slide-bg { position: absolute; inset: 0; }
+        .slide-bg img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
+        .bg-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.15)); }
+        .slide-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .title { color: #fff; font-size: 3rem; line-height: 1.1; margin: 0 0 .5rem 0; }
+        .subtitle { color: #fff; opacity: .9; font-size: 1.2rem; margin: 0 0 1.5rem 0; }
+        .hero-cta { font-size: 1rem; padding: 12px 20px; }
+        .nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.35); color: #fff; border: 0; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+        .nav.prev { left: 16px; }
+        .nav.next { right: 16px; }
+        .dots { position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; background: transparent; cursor: pointer; opacity: .7; }
+        .dot.active { background: #fff; opacity: 1; }
 
-        .sections-header {
-          text-align: center;
-          margin-bottom: 3rem;
-        }
+        /* Sections */
+        .section-title { text-align: center; font-size: 2rem; margin: 3rem 0 1.5rem; color: var(--text-color); }
+        .grid { display: grid; gap: 18px; }
+        .ecosystem .grid.ecos { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+        .eco-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease; }
+        .eco-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px var(--shadow-color); }
+        .eco-media { height: 140px; overflow: hidden; background: var(--light-gray); display:flex; align-items:center; justify-content:center; }
+        .eco-media img { width: 100%; height: 100%; object-fit: cover; }
+        .eco-body { padding: 14px 16px; }
+        .eco-body h3 { margin: 4px 0 6px; font-size: 1.1rem; }
+        .eco-body p { margin: 0 0 8px; color: var(--text-muted); font-size: .95rem; }
+        .eco-body .link { color: var(--primary-color); font-weight: 600; font-size: .9rem; }
 
-        .sections-header h2 {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
-          color: var(--text-color);
-        }
+        /* Accolades */
+        .accolades .grid.acc { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .acc-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; text-align:center; padding: 16px; }
+        .acc-card img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 10px; filter: saturate(.9); }
+        .acc-card p { margin: 0; font-weight: 500; color: var(--text-color); }
 
-        .sections-header p {
-          font-size: 1.1rem;
-          color: var(--text-color);
-          opacity: 0.7;
-        }
+        /* News */
+        .news-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+        .news-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .2s ease, box-shadow .2s ease; display:flex; flex-direction:column; }
+        .news-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px var(--shadow-color); }
+        .news-media { height: 160px; background: var(--light-gray); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+        .news-media img { width: 100%; height: 100%; object-fit: cover; }
+        .news-body { padding: 14px 16px; }
+        .news-body .date { font-size: .85rem; color: var(--text-muted); }
+        .news-body h3 { margin: 6px 0 10px; font-size: 1.05rem; }
+        .center { display:flex; justify-content:center; }
+        .mt-24 { margin-top: 24px; }
 
-        .sections-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 2rem;
-        }
+        /* Allies */
+        .allies { padding: 20px 0 10px; }
+        .ally-strip { display:flex; gap: 20px; overflow-x:auto; padding: 6px 0; }
+        .ally { flex: 0 0 auto; background: var(--card-bg); border:1px solid var(--border-color); border-radius: 10px; padding: 10px 16px; display:flex; align-items:center; justify-content:center; }
+        .ally img { height: 36px; width: auto; object-fit: contain; }
 
-        .section-card {
-          background: var(--card-bg);
-          border-radius: 20px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px var(--shadow-color);
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+        /* CTA */
+        .cta { padding: 40px 0 60px; }
+        .cta-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 16px; padding: 28px; text-align:center; box-shadow: 0 14px 30px rgba(0,0,0,.15); }
+        .cta-card h2 { margin: 0 0 6px; font-size: 1.8rem; }
+        .cta-card p { margin: 0 0 16px; opacity: .95; }
 
-        .section-card:hover {
-          transform: translateY(-10px);
-          box-shadow: 0 20px 40px var(--shadow-color);
-        }
-
-        .section-header {
-          padding: 2rem;
-          text-align: center;
-          color: white;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .section-header::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: inherit;
-          opacity: 0.9;
-        }
-
-        .section-header > * {
-          position: relative;
-          z-index: 1;
-        }
-
-        .section-icon {
-          font-size: 3rem;
-          margin-bottom: 1rem;
-        }
-
-        .section-header h3 {
-          font-size: 1.8rem;
-          margin: 0 0 0.5rem;
-          font-weight: 600;
-        }
-
-        .section-subtitle {
-          font-size: 1rem;
-          margin: 0;
-          opacity: 0.9;
-        }
-
-        .section-content {
-          padding: 2rem;
-        }
-
-        .section-description {
-          font-size: 1rem;
-          line-height: 1.6;
-          margin-bottom: 1.5rem;
-          color: var(--text-color);
-        }
-
-        .section-features {
-          list-style: none;
-          padding: 0;
-          margin: 0 0 2rem;
-        }
-
-        .section-features li {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          margin-bottom: 0.5rem;
-          color: var(--text-color);
-        }
-
-        .feature-check {
-          color: #4CAF50;
-          font-weight: bold;
-        }
-
-        .section-button {
-          width: 100%;
-          background: linear-gradient(45deg, #667eea, #764ba2);
-          color: white;
-          border: none;
-          padding: 1rem 2rem;
-          border-radius: 10px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .section-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .features-section {
-          padding: 4rem 0;
-          background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        }
-
-        .features-section h2 {
-          text-align: center;
-          font-size: 2.5rem;
-          margin-bottom: 3rem;
-          color: var(--text-color);
-        }
-
-        .features-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 2rem;
-        }
-
-        .feature-card {
-          background: var(--card-bg);
-          padding: 2rem;
-          border-radius: 15px;
-          text-align: center;
-          box-shadow: 0 5px 20px var(--shadow-color);
-          transition: transform 0.3s ease;
-        }
-
-        .feature-card:hover {
-          transform: translateY(-5px);
-        }
-
-        .feature-icon {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
-        }
-
-        .feature-card h3 {
-          font-size: 1.3rem;
-          margin-bottom: 1rem;
-          color: var(--text-color);
-        }
-
-        .feature-card p {
-          color: var(--text-color);
-          opacity: 0.7;
-          line-height: 1.5;
-        }
-
-        .cta-section {
-          padding: 4rem 0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-        }
-
-        .cta-content {
-          text-align: center;
-        }
-
-        .cta-content h2 {
-          font-size: 2.5rem;
-          margin-bottom: 1rem;
-        }
-
-        .cta-content p {
-          font-size: 1.1rem;
-          margin-bottom: 2rem;
-          opacity: 0.9;
-        }
-
-        .btn-primary {
-          background: linear-gradient(45deg, #FF6B6B, #FFE66D);
-          color: white;
-          border: none;
-          padding: 1rem 2rem;
-          border-radius: 50px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-decoration: none;
-          display: inline-block;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-primary.large {
-          padding: 1.2rem 3rem;
-          font-size: 1.1rem;
-        }
-
-        .btn-outline {
-          background: transparent;
-          color: white;
-          border: 2px solid white;
-          padding: 1rem 2rem;
-          border-radius: 50px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          text-decoration: none;
-          display: inline-block;
-        }
-
-        .btn-outline:hover {
-          background: white;
-          color: #667eea;
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-          .lms-logo h1 {
-            font-size: 2.5rem;
-          }
-
-          .hero-title {
-            font-size: 2rem;
-          }
-
-          .hero-stats {
-            gap: 2rem;
-          }
-
-          .hero-actions {
-            flex-direction: column;
-            align-items: center;
-          }
-
-          .sections-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .features-grid {
-            grid-template-columns: 1fr;
-          }
+          .hero { height: 56vh; min-height: 420px; }
+          .title { font-size: 2rem; }
+          .subtitle { font-size: 1rem; }
+          .eco-media { height: 120px; }
+          .news-media { height: 140px; }
         }
       `}</style>
     </div>
   );
-} 
+}
